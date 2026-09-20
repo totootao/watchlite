@@ -16,6 +16,10 @@ let stateFilter = {};
 try { stateFilter = JSON.parse(localStorage.getItem("wl-state-filter")) || {}; } catch { /* defaults */ }
 let stateFilterSig = "";
 
+// 告警指标名 / 进程状态 中文化映射（仅用于展示，不影响后端字段）
+const METRIC_CN = { cpu: "CPU", mem: "内存", swap: "交换区", disk: "磁盘", temp: "温度" };
+const STATE_CN = { running: "运行中", sleeping: "休眠", idle: "空闲", zombie: "僵尸", stopped: "已停止", paused: "已暂停", "disk sleep": "磁盘休眠" };
+
 // ring buffers for charts
 const hist = { cpu: [], mem: [], rx: [], tx: [] };
 
@@ -38,7 +42,7 @@ function fmtBytes(b, perSec) {
 
 function fmtUptime(s) {
   const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
-  return (d ? d + "d " : "") + h + "h " + m + "m";
+  return (d ? d + "天 " : "") + h + "时 " + m + "分";
 }
 
 function pctClass(p) {
@@ -119,20 +123,20 @@ function drawChart(canvas, series, max) {
 function render(d) {
   // header
   $("host-info").textContent =
-    `${d.host.hostname} · ${d.host.os} · ${d.host.kernel} · ${d.host.arch} · ${d.host.cpu_count} cores · up ${fmtUptime(d.host.uptime_secs)}`;
+    `${d.host.hostname} · ${d.host.os} · ${d.host.kernel} · ${d.host.arch} · ${d.host.cpu_count} 核心 · 已运行 ${fmtUptime(d.host.uptime_secs)}`;
 
   // alert chip
   $("alerts").hidden = !d.alerts.length;
   if (d.alerts.length) {
     $("alerts").textContent =
-      "▲ " + d.alerts.map((a) => { const u = a.unit || "%"; return `${a.metric} ${a.value}${u} > ${a.threshold}${u}`; }).join(" · ");
+      "▲ " + d.alerts.map((a) => { const u = a.unit || "%"; return `${METRIC_CN[a.metric] || a.metric} ${a.value}${u} > ${a.threshold}${u}`; }).join(" · ");
   }
 
   // cpu
   const cpu = d.cpu.total_pct;
   $("cpu-total").textContent = cpu.toFixed(1) + "%";
   $("cpu-total").className = "head-val " + pctClass(cpu);
-  $("load").textContent = "load " + d.cpu.load_avg.map((l) => l.toFixed(2)).join(" ");
+  $("load").textContent = "负载 " + d.cpu.load_avg.map((l) => l.toFixed(2)).join(" ");
   push(hist.cpu, cpu);
   $("cpu-max").textContent = "100% · " + fmtWindow();
   drawChart($("cpu-chart"), [{ data: hist.cpu, color: "#58a6ff", fill: true }], 100);
@@ -157,7 +161,7 @@ function render(d) {
     $("swap-bar").classList.add("dim");
     $("swap-label").textContent = `${fmtBytes(d.memory.swap_used)} / ${fmtBytes(d.memory.swap_total)}`;
   } else {
-    $("swap-label").textContent = "no swap";
+    $("swap-label").textContent = "无交换区";
   }
 
   // network
@@ -176,7 +180,7 @@ function render(d) {
   const ifaces = d.net.filter((n) => n.rx_total + n.tx_total > 0)
     .sort((a, b) => (b.rx_bps + b.tx_bps) - (a.rx_bps + a.tx_bps)).slice(0, 4);
   $("net-table").innerHTML =
-    `<div class="gt-head"><span>iface</span><span class="num">rx/s</span><span class="num">tx/s</span><span class="num">total</span></div>` +
+    `<div class="gt-head"><span>网卡</span><span class="num">接收/s</span><span class="num">发送/s</span><span class="num">总计</span></div>` +
     ifaces.map((n) =>
       `<div class="gt-row"><span>${esc(n.iface)}</span>` +
       `<span class="num">${fmtBytes(n.rx_bps, 1)}</span><span class="num">${fmtBytes(n.tx_bps, 1)}</span>` +
@@ -197,7 +201,7 @@ function render(d) {
   $("diskio-na").hidden = !!d.disk_io;
   if (d.disk_io) {
     $("diskio-table").innerHTML =
-      `<div class="gt-head"><span>device</span><span class="num">read/s</span><span class="num">write/s</span></div>` +
+      `<div class="gt-head"><span>设备</span><span class="num">读取/s</span><span class="num">写入/s</span></div>` +
       d.disk_io.map((io) =>
         `<div class="gt-row"><span>${esc(io.device)}</span>` +
         `<span class="num rx">${fmtBytes(io.read_bps, 1)}</span><span class="num tx">${fmtBytes(io.write_bps, 1)}</span></div>`
@@ -212,7 +216,7 @@ function render(d) {
     $("conn-tw").textContent = d.connections.time_wait;
     $("listen-ports").innerHTML = d.connections.listening.length
       ? d.connections.listening.map((p) => `<span class="port">${esc(p)}</span>`).join("")
-      : `<span class="subline">none</span>`;
+      : `<span class="subline">无</span>`;
   }
 
   // sensors — full list, scrolls within a fixed height
@@ -236,7 +240,7 @@ function render(d) {
   renderStateFilter(stateCounts);
   const visible = d.processes.list.filter((p) => stateFilter[p.state] !== false);
   // per-state counts live in the checklist; keep this line to the total
-  $("proc-total").textContent = `${d.processes.total} total`;
+  $("proc-total").textContent = `共 ${d.processes.total} 个`;
   const procs = [...visible].sort((a, b) => {
     const va = sortKey === "cpu" ? a.cpu_pct : sortKey === "mem" ? a.mem_bytes : a[sortKey];
     const vb = sortKey === "cpu" ? b.cpu_pct : sortKey === "mem" ? b.mem_bytes : b[sortKey];
@@ -247,7 +251,7 @@ function render(d) {
   }
   $("proc-rows").innerHTML = procs.map((p) =>
     `<div class="gt-row"><span class="num dim">${p.pid}</span><span title="${esc(p.name)}">${esc(p.name)}</span>` +
-    `<span class="${p.state === "running" ? "st-r" : p.state === "zombie" ? "st-z" : "dim"}">${esc(p.state)}</span>` +
+    `<span class="${p.state === "running" ? "st-r" : p.state === "zombie" ? "st-z" : "dim"}">${STATE_CN[p.state] || esc(p.state)}</span>` +
     `<div class="cpu-cell"><div class="bar"><div class="bar-fill ${pctClass(p.cpu_pct)}" style="width:${Math.min(100, p.cpu_pct)}%"></div></div>` +
     `<span class="cpu-num">${p.cpu_pct.toFixed(1)}</span></div>` +
     `<span class="num">${fmtBytes(p.mem_bytes)}</span></div>`
@@ -264,7 +268,7 @@ function render(d) {
   }
   if (d.docker) {
     const running = d.docker.containers.filter((c) => c.state === "running").length;
-    $("docker-total").textContent = `${d.docker.containers.length} containers · ${running} running`;
+    $("docker-total").textContent = `共 ${d.docker.containers.length} 个容器 · ${running} 运行中`;
     const containers = [...d.docker.containers];
     if (dockerSortKey) {
       containers.sort((a, b) =>
@@ -277,7 +281,7 @@ function render(d) {
     $("docker-rows").innerHTML = containers.map((c) =>
       `<div class="gt-row"><span title="${esc(c.name)}">${esc(c.name)}</span>` +
       `<span class="dim" title="${esc(c.image)}">${esc(c.image)}</span>` +
-      `<span class="state-${esc(c.state)}">${esc(c.state)}</span>` +
+      `<span class="state-${esc(c.state)}">${STATE_CN[c.state] || esc(c.state)}</span>` +
       `<span class="num">${c.state === "running" ? c.cpu_pct.toFixed(1) : "-"}</span>` +
       `<span class="num dim">${c.state === "running" ? fmtBytes(c.mem_bytes) + " / " + fmtBytes(c.mem_limit) : "-"}</span></div>`
     ).join("");

@@ -14,6 +14,10 @@ let procQuery = "";
 const hist = { cpu: [], mem: [], rx: [], tx: [] };
 let histSeeded = false;
 
+// 告警指标名 / 进程状态 中文化映射（仅用于展示，不影响后端字段）
+const METRIC_CN = { cpu: "CPU", mem: "内存", swap: "交换区", disk: "磁盘", temp: "温度" };
+const STATE_CN = { running: "运行中", sleeping: "休眠", idle: "空闲", zombie: "僵尸", stopped: "已停止", paused: "已暂停", "disk sleep": "磁盘休眠" };
+
 /* ---------- formatting ---------- */
 
 function fmtBytes(b, perSec) {
@@ -28,7 +32,7 @@ function fmtBytes(b, perSec) {
 
 function fmtUptime(s) {
   const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
-  return (d ? d + "d " : "") + h + "h " + m + "m";
+  return (d ? d + "天 " : "") + h + "时 " + m + "分";
 }
 
 function pctClass(p) { return p >= 90 ? "crit" : p >= 70 ? "warn" : ""; }
@@ -96,16 +100,16 @@ function render(d) {
   $("alert-bar").hidden = !d.alerts.length;
   if (d.alerts.length) {
     $("alert-bar").textContent =
-      "▲ " + d.alerts.map((a) => { const u = a.unit || "%"; return `${a.metric} ${a.value}${u} > ${a.threshold}${u}`; }).join(" · ");
+      "▲ " + d.alerts.map((a) => { const u = a.unit || "%"; return `${METRIC_CN[a.metric] || a.metric} ${a.value}${u} > ${a.threshold}${u}`; }).join(" · ");
   }
 
   /* ----- overview ----- */
 
   $("host-meta").innerHTML =
-    `<span>os</span><b>${esc(d.host.os)} · ${esc(d.host.kernel)}</b>` +
-    `<span>cpu</span><b>${esc(d.host.cpu_model)}</b>` +
-    `<span>cores</span><b>${d.host.cpu_count}${d.host.cpu_freq_mhz ? " · " + (d.host.cpu_freq_mhz / 1000).toFixed(1) + " GHz" : ""} · ${esc(d.host.arch)}</b>` +
-    `<span>uptime</span><b>${fmtUptime(d.host.uptime_secs)}</b>`;
+    `<span>系统</span><b>${esc(d.host.os)} · ${esc(d.host.kernel)}</b>` +
+    `<span>CPU</span><b>${esc(d.host.cpu_model)}</b>` +
+    `<span>核心</span><b>${d.host.cpu_count}${d.host.cpu_freq_mhz ? " · " + (d.host.cpu_freq_mhz / 1000).toFixed(1) + " GHz" : ""} · ${esc(d.host.arch)}</b>` +
+    `<span>运行时长</span><b>${fmtUptime(d.host.uptime_secs)}</b>`;
 
   const cpu = d.cpu.total_pct;
   setVal($("cpu-val"), cpu.toFixed(1) + "%", cpu);
@@ -113,7 +117,7 @@ function render(d) {
   $("cpu-cores").innerHTML = d.cpu.per_core_pct.map((p, i) =>
     `<div class="core"><i style="width:${Math.min(100, p)}%;background:${p >= 90 ? "color-mix(in srgb,var(--red) 45%,transparent)" : p >= 70 ? "color-mix(in srgb,var(--yellow) 45%,transparent)" : ""}"></i><b>${p.toFixed(0)}</b></div>`
   ).join("");
-  $("cpu-sub").textContent = "load " + d.cpu.load_avg.map((l) => l.toFixed(2)).join(" ");
+  $("cpu-sub").textContent = "负载 " + d.cpu.load_avg.map((l) => l.toFixed(2)).join(" ");
 
   const memPct = d.memory.total ? (d.memory.used / d.memory.total) * 100 : 0;
   setVal($("mem-val"), memPct.toFixed(0) + "%", memPct);
@@ -211,14 +215,14 @@ function render(d) {
       return procSortKey === "pid" ? va - vb : vb - va;
     })
     .slice(0, 100);
-  $("proc-count").textContent = `${d.processes.total} total · showing ${procs.length}`;
+  $("proc-count").textContent = `共 ${d.processes.total} 个 · 显示 ${procs.length} 个`;
   $("proc-list").innerHTML = procs.length ? procs.map((p) =>
     `<div class="proc-row">` +
     `<span class="proc-name">${esc(p.name)}</span>` +
     `<span class="proc-val ${pctClass(p.cpu_pct)}">${p.cpu_pct.toFixed(1)}<small>%</small></span>` +
-    `<span class="proc-sub"><span class="${p.state === "running" ? "st-run" : p.state === "zombie" ? "st-zombie" : ""}">${esc(p.state)}</span><span>pid ${p.pid}</span></span>` +
+    `<span class="proc-sub"><span class="${p.state === "running" ? "st-run" : p.state === "zombie" ? "st-zombie" : ""}">${STATE_CN[p.state] || esc(p.state)}</span><span>PID ${p.pid}</span></span>` +
     `<span class="proc-val">${fmtBytes(p.mem_bytes)}</span></div>`
-  ).join("") : `<div class="empty">no matching processes</div>`;
+  ).join("") : `<div class="empty">无匹配进程</div>`;
 
   /* ----- docker ----- */
 
@@ -226,15 +230,15 @@ function render(d) {
   $("tab-docker").hidden = !hasDocker && !d.docker_hint;
   if (hasDocker) {
     const running = d.docker.containers.filter((c) => c.state === "running").length;
-    $("docker-count").textContent = `${d.docker.containers.length} · ${running} running`;
+    $("docker-count").textContent = `共 ${d.docker.containers.length} 个 · ${running} 运行中`;
     $("docker-na").hidden = true;
     $("docker-list").innerHTML = d.docker.containers.length ? d.docker.containers.map((c) =>
       `<div class="proc-row">` +
       `<span class="proc-name">${esc(c.name)}</span>` +
-      `<span class="proc-val ${c.state === "running" ? "" : "st-sleep"}">${esc(c.state)}</span>` +
+      `<span class="proc-val ${c.state === "running" ? "" : "st-sleep"}">${STATE_CN[c.state] || esc(c.state)}</span>` +
       `<span class="proc-sub">${esc(c.image)}</span>` +
       `<span class="proc-val">${c.state === "running" ? c.cpu_pct.toFixed(1) + "<small>%</small>" : "-"}<br><small>${c.state === "running" ? fmtBytes(c.mem_bytes) : ""}</small></span></div>`
-    ).join("") : `<div class="empty">no containers</div>`;
+    ).join("") : `<div class="empty">无容器</div>`;
   } else {
     $("docker-count").textContent = "";
     $("docker-na").hidden = !d.docker_hint;
@@ -270,7 +274,7 @@ let updatedTimer = null;
 function flashUpdated() {
   const el = $("updated");
   const now = new Date();
-  el.textContent = "updated " + now.toLocaleTimeString();
+  el.textContent = "已更新 " + now.toLocaleTimeString();
   el.classList.add("show");
   clearTimeout(updatedTimer);
   updatedTimer = setTimeout(() => el.classList.remove("show"), 1200);

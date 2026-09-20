@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a0d12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>watchlite · mobile</title>
+<title>watchlite · 移动端</title>
 <link rel="icon" href="../favicon.svg">
 <link rel="stylesheet" href="../mobile.css">
 <script>try{if(localStorage.getItem("wl-theme")==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}</script>
@@ -14,103 +14,103 @@
 <body>
 <header>
   <div class="brand">watch<span>lite</span></div>
-  <div id="host-name" class="host-name">connecting&hellip;</div>
-  <div id="conn" class="conn-dot" title="connection status"></div>
-  <button id="theme-toggle" class="hdr-btn" aria-label="toggle theme">◐</button>
-  <a class="hdr-btn" href="./" title="desktop UI" aria-label="switch to desktop UI">▣</a>
+  <div id="host-name" class="host-name">连接中&hellip;</div>
+  <div id="conn" class="conn-dot" title="连接状态"></div>
+  <button id="theme-toggle" class="hdr-btn" aria-label="切换主题">◐</button>
+  <a class="hdr-btn" href="./" title="切换到桌面版" aria-label="切换到桌面版">▣</a>
 </header>
 
 <div id="alert-bar" class="alert-bar" hidden></div>
 
 <main id="views">
 
-  <!-- ============ overview ============ -->
+  <!-- ============ 概览 ============ -->
   <section class="view" id="view-overview">
     <div class="card" id="card-host">
-      <div class="card-title">host</div>
+      <div class="card-title">主机</div>
       <div id="host-meta" class="host-meta"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">cpu <span id="cpu-val" class="card-val"></span></div>
+      <div class="card-title">CPU <span id="cpu-val" class="card-val"></span></div>
       <div class="bar big"><div id="cpu-bar" class="bar-fill"></div></div>
       <div id="cpu-cores" class="cores"></div>
       <div id="cpu-sub" class="subline"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">memory <span id="mem-val" class="card-val"></span></div>
+      <div class="card-title">内存 <span id="mem-val" class="card-val"></span></div>
       <div class="bar big"><div id="mem-bar" class="bar-fill"></div></div>
-      <div class="kv"><span>used</span><b id="mem-used"></b></div>
-      <div class="kv"><span>free</span><b id="mem-free"></b></div>
-      <div class="kv" id="swap-row" hidden><span>swap</span><b id="swap-val"></b></div>
+      <div class="kv"><span>已用</span><b id="mem-used"></b></div>
+      <div class="kv"><span>空闲</span><b id="mem-free"></b></div>
+      <div class="kv" id="swap-row" hidden><span>交换区</span><b id="swap-val"></b></div>
       <div class="bar swap"><div id="swap-bar" class="bar-fill dim"></div></div>
     </div>
 
     <div class="card">
-      <div class="card-title">network</div>
+      <div class="card-title">网络</div>
       <div class="net-speeds">
-        <div class="net-speed"><span class="dir rx">↓</span><b id="net-rx">-</b><span class="cap">download</span></div>
-        <div class="net-speed"><span class="dir tx">↑</span><b id="net-tx">-</b><span class="cap">upload</span></div>
+        <div class="net-speed"><span class="dir rx">↓</span><b id="net-rx">-</b><span class="cap">下载</span></div>
+        <div class="net-speed"><span class="dir tx">↑</span><b id="net-tx">-</b><span class="cap">上传</span></div>
       </div>
       <div id="net-ifaces"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">disks</div>
+      <div class="card-title">磁盘</div>
       <div id="disks" class="stack"></div>
     </div>
 
     <div class="card" id="card-io" hidden>
-      <div class="card-title">disk i/o</div>
+      <div class="card-title">磁盘 I/O</div>
       <div class="net-speeds">
-        <div class="net-speed"><span class="dir rx">R</span><b id="io-read">-</b><span class="cap">read/s</span></div>
-        <div class="net-speed"><span class="dir tx">W</span><b id="io-write">-</b><span class="cap">write/s</span></div>
+        <div class="net-speed"><span class="dir rx">R</span><b id="io-read">-</b><span class="cap">读取/s</span></div>
+        <div class="net-speed"><span class="dir tx">W</span><b id="io-write">-</b><span class="cap">写入/s</span></div>
       </div>
     </div>
 
     <div class="card" id="card-sensors" hidden>
-      <div class="card-title">sensors</div>
+      <div class="card-title">传感器</div>
       <div id="temps" class="stack"></div>
       <div id="fans" class="subline"></div>
     </div>
 
     <div class="card" id="card-conns" hidden>
-      <div class="card-title">connections</div>
+      <div class="card-title">连接</div>
       <div class="net-speeds">
-        <div class="net-speed"><b id="conn-est">-</b><span class="cap">established</span></div>
-        <div class="net-speed"><b id="conn-tw">-</b><span class="cap">time-wait</span></div>
+        <div class="net-speed"><b id="conn-est">-</b><span class="cap">已建立</span></div>
+        <div class="net-speed"><b id="conn-tw">-</b><span class="cap">等待关闭</span></div>
       </div>
       <div id="listen-ports" class="ports"></div>
     </div>
   </section>
 
-  <!-- ============ charts ============ -->
+  <!-- ============ 图表 ============ -->
   <section class="view" id="view-charts" hidden>
     <div class="card">
-      <div class="card-title">cpu <span id="chart-cpu-val" class="card-val"></span></div>
+      <div class="card-title">CPU <span id="chart-cpu-val" class="card-val"></span></div>
       <div class="chart"><canvas id="cpu-chart"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">memory <span id="chart-mem-val" class="card-val"></span></div>
+      <div class="card-title">内存 <span id="chart-mem-val" class="card-val"></span></div>
       <div class="chart"><canvas id="mem-chart"></canvas></div>
     </div>
     <div class="card">
-      <div class="card-title">network <span id="chart-net-val" class="card-val"></span></div>
+      <div class="card-title">网络 <span id="chart-net-val" class="card-val"></span></div>
       <div class="chart"><canvas id="net-chart"></canvas></div>
-      <div class="legend"><span class="lg"><i class="sw rx"></i>rx</span><span class="lg"><i class="sw tx"></i>tx</span></div>
+      <div class="legend"><span class="lg"><i class="sw rx"></i>收</span><span class="lg"><i class="sw tx"></i>发</span></div>
     </div>
   </section>
 
-  <!-- ============ processes ============ -->
+  <!-- ============ 进程 ============ -->
   <section class="view" id="view-procs" hidden>
     <div class="card">
-      <div class="card-title">processes <span id="proc-count" class="card-val"></span></div>
-      <input id="proc-search" class="search" type="search" placeholder="filter by name / pid" autocomplete="off">
+      <div class="card-title">进程 <span id="proc-count" class="card-val"></span></div>
+      <input id="proc-search" class="search" type="search" placeholder="按名称 / PID 过滤" autocomplete="off">
       <div class="seg" id="proc-sort">
-        <button data-sort="cpu" class="on">cpu</button>
-        <button data-sort="mem">mem</button>
-        <button data-sort="pid">pid</button>
+        <button data-sort="cpu" class="on">CPU</button>
+        <button data-sort="mem">内存</button>
+        <button data-sort="pid">PID</button>
       </div>
     </div>
     <div class="card grow">
@@ -118,10 +118,10 @@
     </div>
   </section>
 
-  <!-- ============ containers ============ -->
+  <!-- ============ 容器 ============ -->
   <section class="view" id="view-docker" hidden>
     <div class="card grow">
-      <div class="card-title">containers <span id="docker-count" class="card-val"></span></div>
+      <div class="card-title">容器 <span id="docker-count" class="card-val"></span></div>
       <div id="docker-na" class="subline" hidden></div>
       <div id="docker-list" class="proc-list"></div>
     </div>
@@ -129,14 +129,14 @@
 
 </main>
 
-<!-- pull-to-refresh hint -->
+<!-- 下拉刷新提示 -->
 <div id="updated" class="updated"></div>
 
 <nav class="tabbar">
-  <button class="tab on" data-view="overview"><i>◉</i><span>overview</span></button>
-  <button class="tab" data-view="charts"><i>∿</i><span>charts</span></button>
-  <button class="tab" data-view="procs"><i>≡</i><span>procs</span></button>
-  <button class="tab" data-view="docker" id="tab-docker" hidden><i>▣</i><span>docker</span></button>
+  <button class="tab on" data-view="overview"><i>◉</i><span>概览</span></button>
+  <button class="tab" data-view="charts"><i>∿</i><span>图表</span></button>
+  <button class="tab" data-view="procs"><i>≡</i><span>进程</span></button>
+  <button class="tab" data-view="docker" id="tab-docker" hidden><i>▣</i><span>容器</span></button>
 </nav>
 
 <script src="../mobile.js"></script>

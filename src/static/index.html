@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,12 +11,12 @@
 <body>
 <header>
   <div class="brand">watch<span>lite</span></div>
-  <div id="host-info" class="host-info">connecting&hellip;</div>
+  <div id="host-info" class="host-info">连接中&hellip;</div>
   <div id="alerts" class="alert-chip" hidden></div>
   <div id="clock" class="clock"></div>
-  <a class="theme-btn" href="m" title="mobile UI" aria-label="switch to mobile UI" style="text-decoration:none">▤</a>
-  <button id="theme-toggle" class="theme-btn" title="toggle light/dark theme" aria-label="toggle theme">◐</button>
-  <div id="conn" class="conn-dot" title="connection status"></div>
+  <a class="theme-btn" href="m" title="切换到移动版" aria-label="切换到移动版" style="text-decoration:none">▤</a>
+  <button id="theme-toggle" class="theme-btn" title="切换明暗主题" aria-label="切换主题">◐</button>
+  <div id="conn" class="conn-dot" title="连接状态"></div>
 </header>
 
 <main>
@@ -37,7 +37,7 @@
 
     <section class="panel" id="panel-mem">
       <div class="panel-head">
-        <h2>Memory</h2>
+        <h2>内存</h2>
         <span class="spacer"></span>
         <span id="mem-label" class="head-val"></span>
       </div>
@@ -46,7 +46,7 @@
         <span id="mem-max" class="chart-max">100%</span>
       </div>
       <div class="bar-line">
-        <span class="bar-line-label">swap</span>
+        <span class="bar-line-label">交换区</span>
         <div class="bar"><div id="swap-bar" class="bar-fill dim"></div></div>
         <span id="swap-label" class="bar-line-val"></span>
       </div>
@@ -54,7 +54,7 @@
 
     <section class="panel" id="panel-net">
       <div class="panel-head">
-        <h2>Network</h2>
+        <h2>网络</h2>
         <span class="spacer"></span>
         <span id="net-rx" class="head-val rx"></span>
         <span id="net-tx" class="head-val tx"></span>
@@ -69,52 +69,52 @@
 
   <div class="row">
     <section class="panel" id="panel-disks">
-      <h2>Disks</h2>
+      <h2>磁盘</h2>
       <div id="disks" class="stack"></div>
     </section>
 
     <section class="panel" id="panel-diskio">
-      <h2>Disk I/O</h2>
+      <h2>磁盘 I/O</h2>
       <div id="diskio-table" class="gt gt-io"></div>
-      <div id="diskio-na" class="na" hidden>not supported on this platform</div>
+      <div id="diskio-na" class="na" hidden>当前平台不支持</div>
     </section>
 
     <section class="panel" id="panel-sensors" hidden>
-      <h2>Sensors</h2>
+      <h2>传感器</h2>
       <div id="temps" class="stack"></div>
       <div id="fans" class="subline"></div>
     </section>
 
     <section class="panel" id="panel-conns">
-      <h2>Connections</h2>
+      <h2>连接</h2>
       <div id="conns-body">
         <div class="conn-stats">
-          <div class="conn-stat"><span id="conn-est" class="conn-num"></span><span class="conn-cap">established</span></div>
-          <div class="conn-stat"><span id="conn-tw" class="conn-num dim"></span><span class="conn-cap">time-wait</span></div>
+          <div class="conn-stat"><span id="conn-est" class="conn-num"></span><span class="conn-cap">已建立</span></div>
+          <div class="conn-stat"><span id="conn-tw" class="conn-num dim"></span><span class="conn-cap">等待关闭</span></div>
         </div>
-        <div class="conn-cap listen-cap">listening</div>
+        <div class="conn-cap listen-cap">监听端口</div>
         <div id="listen-ports" class="ports"></div>
       </div>
-      <div id="conns-na" class="na" hidden>not supported on this platform</div>
+      <div id="conns-na" class="na" hidden>当前平台不支持</div>
     </section>
   </div>
 
   <div class="row grow">
     <section class="panel wide7" id="panel-procs">
       <div class="panel-head">
-        <h2>Processes</h2>
+        <h2>进程</h2>
         <span id="proc-total" class="head-dim"></span>
         <span class="spacer"></span>
         <span id="state-filter" class="state-filter"></span>
-        <span class="head-hint">click headers to sort</span>
+        <span class="head-hint">点击表头排序</span>
       </div>
       <div class="gt gt-proc">
         <div class="gt-head" id="proc-head">
-          <span class="num sortable" data-sort="pid">pid<i id="arr-pid"></i></span>
-          <span class="sortable" data-sort="name">name<i id="arr-name"></i></span>
-          <span>state</span>
-          <span class="num sortable" data-sort="cpu">cpu%<i id="arr-cpu"></i></span>
-          <span class="num sortable" data-sort="mem">mem<i id="arr-mem"></i></span>
+          <span class="num sortable" data-sort="pid">PID<i id="arr-pid"></i></span>
+          <span class="sortable" data-sort="name">名称<i id="arr-name"></i></span>
+          <span>状态</span>
+          <span class="num sortable" data-sort="cpu">CPU%<i id="arr-cpu"></i></span>
+          <span class="num sortable" data-sort="mem">内存<i id="arr-mem"></i></span>
         </div>
         <div id="proc-rows" class="gt-body"></div>
       </div>
@@ -122,15 +122,15 @@
 
     <section class="panel wide5" id="panel-docker" hidden>
       <div class="panel-head">
-        <h2>Docker</h2>
+        <h2>容器</h2>
         <span id="docker-total" class="head-dim"></span>
       </div>
       <div id="docker-na" class="na" hidden></div>
       <div class="gt gt-docker" id="docker-gt">
         <div class="gt-head" id="docker-head">
-          <span>name</span><span>image</span><span>state</span>
-          <span class="num sortable" data-dsort="cpu">cpu%<i id="arr-dcpu"></i></span>
-          <span class="num sortable" data-dsort="mem">mem<i id="arr-dmem"></i></span>
+          <span>名称</span><span>镜像</span><span>状态</span>
+          <span class="num sortable" data-dsort="cpu">CPU%<i id="arr-dcpu"></i></span>
+          <span class="num sortable" data-dsort="mem">内存<i id="arr-dmem"></i></span>
         </div>
         <div id="docker-rows" class="gt-body"></div>
       </div>
