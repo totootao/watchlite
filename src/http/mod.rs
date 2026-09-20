@@ -53,6 +53,25 @@ fn handle(request: Request, config: &Config, state: &SharedState) {
     }
 
     let path = request.url().split('?').next().unwrap_or("/");
+
+    // Normalize path-style entry points to carry a trailing slash so that the
+    // relative desktop<->mobile switcher links resolve correctly both at the
+    // root and under the /watchlite prefix.
+    if let Some(target) = match path {
+        "/watchlite" => Some("/watchlite/"),
+        "/m" | "/mobile" => Some("/m/"),
+        "/watchlite/m" => Some("/watchlite/m/"),
+        _ => None,
+    } {
+        let _ = request.respond(
+            Response::from_string("")
+                .with_status_code(301)
+                .with_header(header("Location", target))
+                .with_header(header("Cache-Control", "no-store")),
+        );
+        return;
+    }
+
     let resp = match path {
         // desktop UI, also reachable under the /watchlite prefix
         "/" | "/index.html" | "/watchlite" | "/watchlite/" => {
