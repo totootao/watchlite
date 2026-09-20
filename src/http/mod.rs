@@ -54,35 +54,40 @@ fn handle(request: Request, config: &Config, state: &SharedState) {
 
     let path = request.url().split('?').next().unwrap_or("/");
 
-    // Normalize path-style entry points to carry a trailing slash so that the
-    // relative desktop<->mobile switcher links resolve correctly both at the
-    // root and under the /watchlite prefix.
-    if let Some(target) = match path {
-        "/watchlite" => Some("/watchlite/"),
-        "/m" | "/mobile" => Some("/m/"),
-        "/watchlite/m" => Some("/watchlite/m/"),
+    // The whole app is served both at the root and under the /watchlite
+    // prefix (so a reverse proxy only needs `location /watchlite`); strip
+    // the prefix so a single route table serves both.
+    let route = path.strip_prefix("/watchlite").unwrap_or(path);
+    let route = if route.is_empty() { "/" } else { route };
+
+    // Normalize entry points to a trailing slash so the relative asset and
+    // API links embedded in the HTML resolve against the app root at any
+    // prefix depth. (Matched on the raw path: "/watchlite/" is already a
+    // valid page URL and must not redirect to itself.)
+    let target = match path {
+        "/watchlite" => Some("/watchlite/".to_string()),
+        "/watchlite/m" | "/watchlite/mobile" => Some("/watchlite/m/".to_string()),
+        "/m" | "/mobile" => Some("/m/".to_string()),
         _ => None,
-    } {
+    };
+    if let Some(target) = target {
         let _ = request.respond(
             Response::from_string("")
                 .with_status_code(301)
-                .with_header(header("Location", target))
+                .with_header(header("Location", &target))
                 .with_header(header("Cache-Control", "no-store")),
         );
         return;
     }
 
-    let resp = match path {
+    let resp = match route {
         // desktop UI, also reachable under the /watchlite prefix
-        "/" | "/index.html" | "/watchlite" | "/watchlite/" => {
-            asset(assets::INDEX_HTML, assets::CT_HTML)
-        }
+        "/" | "/index.html" => asset(assets::INDEX_HTML, assets::CT_HTML),
         "/app.js" => asset(assets::APP_JS, assets::CT_JS),
         "/style.css" => asset(assets::STYLE_CSS, assets::CT_CSS),
-        // touch-first mobile dashboard, same API, no build step
-        "/m" | "/m/" | "/mobile" | "/mobile/" | "/watchlite/m" | "/watchlite/m/" => {
-            asset(assets::MOBILE_HTML, assets::CT_HTML)
-        }
+        // touch-first mobile dashboard, same API, no build step; always
+        // served at a trailing-slash URL so "../" reaches the app root
+        "/m/" | "/mobile/" => asset(assets::MOBILE_HTML, assets::CT_HTML),
         "/mobile.js" => asset(assets::MOBILE_JS, assets::CT_JS),
         "/mobile.css" => asset(assets::MOBILE_CSS, assets::CT_CSS),
         // /favicon.ico covers clients that ignore <link rel=icon>

@@ -288,7 +288,7 @@ function render(d) {
 
 async function refresh() {
   try {
-    const res = await fetch("/api/stats");
+    const res = await fetch("api/stats");
     if (!res.ok) throw new Error(res.status);
     const d = await res.json();
     $("conn").className = "conn-dot ok";
@@ -376,7 +376,7 @@ window.addEventListener("resize", () => {
 // Seed charts from server-side history so they survive page reloads.
 async function seedHistory() {
   try {
-    const res = await fetch("/api/history");
+    const res = await fetch("api/history");
     const h = await res.json();
     const pts = h.points || [];
     const stride = Math.max(1, Math.ceil(pts.length / SPARK_LEN));

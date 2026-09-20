@@ -278,7 +278,7 @@ function flashUpdated() {
 
 async function refresh() {
   try {
-    const res = await fetch("/api/stats");
+    const res = await fetch("../api/stats");
     if (!res.ok) throw new Error(res.status);
     const d = await res.json();
     $("conn").className = "conn-dot ok";
@@ -301,7 +301,7 @@ async function seedHistory() {
   if (histSeeded) return;
   histSeeded = true;
   try {
-    const res = await fetch("/api/history");
+    const res = await fetch("../api/history");
     const h = await res.json();
     const pts = h.points || [];
     const stride = Math.max(1, Math.ceil(pts.length / SPARK_LEN));
