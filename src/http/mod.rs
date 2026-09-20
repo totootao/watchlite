@@ -57,6 +57,10 @@ fn handle(request: Request, config: &Config, state: &SharedState) {
         "/" | "/index.html" => asset(assets::INDEX_HTML, assets::CT_HTML),
         "/app.js" => asset(assets::APP_JS, assets::CT_JS),
         "/style.css" => asset(assets::STYLE_CSS, assets::CT_CSS),
+        // touch-first mobile dashboard, same API, no build step
+        "/m" | "/m/" | "/mobile" | "/mobile/" => asset(assets::MOBILE_HTML, assets::CT_HTML),
+        "/mobile.js" => asset(assets::MOBILE_JS, assets::CT_JS),
+        "/mobile.css" => asset(assets::MOBILE_CSS, assets::CT_CSS),
         // /favicon.ico covers clients that ignore <link rel=icon>
         "/favicon.svg" | "/favicon.ico" => asset(assets::FAVICON_SVG, assets::CT_SVG),
         "/api/stats" => {
