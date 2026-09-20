@@ -10,6 +10,7 @@ An ultra-lightweight, single-binary server monitor with an embedded web dashboar
 
 - **Single static binary under 1 MB**, ~11 MB RSS, ~0.1% CPU — no runtime, no dependencies, nothing to install
 - **Embedded web dashboard** (vanilla HTML/CSS/JS, htop-style; dark or light theme) served by the binary itself
+- **Mobile web UI**: a touch-first dashboard is served at `/m` (also `/mobile`) — works on phones out of the box, with overview / charts / processes / containers tabs, safe-area aware and PWA-friendly; the desktop header links to it
 - **Metrics**: CPU (model, total + per-core), memory/swap, load average, disk usage + I/O rates, network throughput, temperatures + fans, TCP connections + listening ports, full sortable process list with states, Docker/Podman containers
 - **History**: ring buffer (1h default) served at `/api/history` — charts survive page reloads *and* process restarts (saved to a small state file once a minute)
 - **Alerts**: thresholds on cpu/mem/swap/disk (percent) and temperature (°C), scopable to one mount or sensor (`--alert 'disk:/data>85'`), with hysteresis; events log to stderr and optionally POST to a webhook
