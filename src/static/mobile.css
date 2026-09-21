@@ -239,6 +239,13 @@ main {
   border: 1px solid var(--border);
   color: var(--dim);
 }
+a.port-link {
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--accent, #3b82f6);
+  cursor: pointer;
+}
+a.port-link:active { filter: brightness(1.25); }
 
 /* ---------- charts ---------- */
 

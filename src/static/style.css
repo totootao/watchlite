@@ -239,6 +239,8 @@ h2 {
   border-radius: 4px;
   font-variant-numeric: tabular-nums;
 }
+a.port-link { text-decoration: none; cursor: pointer; }
+a.port-link:hover { filter: brightness(1.25); text-decoration: underline; }
 
 /* ---------- grid tables ---------- */
 

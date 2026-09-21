@@ -215,7 +215,9 @@ function render(d) {
     $("conn-est").textContent = d.connections.established;
     $("conn-tw").textContent = d.connections.time_wait;
     $("listen-ports").innerHTML = d.connections.listening.length
-      ? d.connections.listening.map((p) => `<span class="port">${esc(p)}</span>`).join("")
+      ? d.connections.listening.map((p) =>
+          `<a class="port port-link" href="http://${location.hostname}:${esc(p)}" target="_blank" rel="noopener" title="打开 http://${location.hostname}:${esc(p)}">${esc(p)}</a>`
+        ).join("")
       : `<span class="subline">无</span>`;
   }
 
