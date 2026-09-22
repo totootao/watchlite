@@ -67,6 +67,25 @@ struct ContainerSummary {
     image: String,
     #[serde(rename = "State", default)]
     state: String,
+    #[serde(rename = "Ports", default)]
+    ports: Vec<PortMapping>,
+}
+
+#[derive(Deserialize)]
+struct PortMapping {
+    #[serde(rename = "PublicPort", default)]
+    public_port: Option<u16>,
+    #[serde(rename = "PrivatePort", default)]
+    private_port: Option<u16>,
+}
+
+impl PortMapping {
+    /// The host-reachable port: the published one, or the private port for
+    /// host-network containers (no explicit mapping but the service listens
+    /// on the host itself).
+    fn host_port(&self) -> Option<u16> {
+        self.public_port.or(self.private_port)
+    }
 }
 
 #[derive(Deserialize, Default)]
@@ -161,6 +180,10 @@ fn collect_from(socket: &Path, prev_cpu: &mut PrevCpu) -> Option<Docker> {
             .unwrap_or_else(|| s.id.chars().take(12).collect());
         let short_id: String = s.id.chars().take(12).collect();
 
+        let mut ports: Vec<u16> = s.ports.iter().filter_map(PortMapping::host_port).collect();
+        ports.sort_unstable();
+        ports.dedup();
+
         let mut c = Container {
             id: short_id,
             name,
@@ -169,6 +192,7 @@ fn collect_from(socket: &Path, prev_cpu: &mut PrevCpu) -> Option<Docker> {
             cpu_pct: 0.0,
             mem_bytes: 0,
             mem_limit: 0,
+            ports,
         };
 
         if s.state == "running" {

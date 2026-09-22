@@ -280,13 +280,19 @@ function render(d) {
     for (const k of ["cpu", "mem"]) {
       $("arr-d" + k).textContent = dockerSortKey === k ? (dockerSortDir > 0 ? " ▴" : " ▾") : "";
     }
-    $("docker-rows").innerHTML = containers.map((c) =>
-      `<div class="gt-row"><span title="${esc(c.name)}">${esc(c.name)}</span>` +
+    $("docker-rows").innerHTML = containers.map((c) => {
+      const host = location.hostname;
+      const nameHtml = c.ports && c.ports.length
+        ? `<a class="name-link" href="http://${host}:${c.ports[0]}" target="_blank" rel="noopener" title="打开 http://${host}:${c.ports[0]}">${esc(c.name)}</a>` +
+          (c.ports.length > 1 ? ` <span class="ports">` + c.ports.map((p) =>
+            `<a class="port port-link" href="http://${host}:${p}" target="_blank" rel="noopener">${p}</a>`).join("") + `</span>` : "")
+        : esc(c.name);
+      return `<div class="gt-row"><span title="${esc(c.name)}">${nameHtml}</span>` +
       `<span class="dim" title="${esc(c.image)}">${esc(c.image)}</span>` +
       `<span class="state-${esc(c.state)}">${STATE_CN[c.state] || esc(c.state)}</span>` +
       `<span class="num">${c.state === "running" ? c.cpu_pct.toFixed(1) : "-"}</span>` +
-      `<span class="num dim">${c.state === "running" ? fmtBytes(c.mem_bytes) + " / " + fmtBytes(c.mem_limit) : "-"}</span></div>`
-    ).join("");
+      `<span class="num dim">${c.state === "running" ? fmtBytes(c.mem_bytes) + " / " + fmtBytes(c.mem_limit) : "-"}</span></div>`;
+    }).join("");
   }
 }
 

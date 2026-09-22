@@ -241,6 +241,11 @@ h2 {
 }
 a.port-link { text-decoration: none; cursor: pointer; }
 a.port-link:hover { filter: brightness(1.25); text-decoration: underline; }
+.gt-row a.name-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.gt-row a.name-link:hover { text-decoration: underline; }
 
 /* ---------- grid tables ---------- */
 

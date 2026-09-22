@@ -179,4 +179,7 @@ pub struct Container {
     pub cpu_pct: f64,
     pub mem_bytes: u64,
     pub mem_limit: u64,
+    /// Host-side published ports (private port as fallback for host-network
+    /// containers), sorted ascending; empty when none are published.
+    pub ports: Vec<u16>,
 }

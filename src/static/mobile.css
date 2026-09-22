@@ -246,6 +246,12 @@ a.port-link {
   cursor: pointer;
 }
 a.port-link:active { filter: brightness(1.25); }
+.proc-name a.name-link {
+  color: var(--accent);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.proc-name a.name-link:active { filter: brightness(1.25); }
 
 /* ---------- charts ---------- */
 

@@ -234,13 +234,21 @@ function render(d) {
     const running = d.docker.containers.filter((c) => c.state === "running").length;
     $("docker-count").textContent = `共 ${d.docker.containers.length} 个 · ${running} 运行中`;
     $("docker-na").hidden = true;
-    $("docker-list").innerHTML = d.docker.containers.length ? d.docker.containers.map((c) =>
-      `<div class="proc-row">` +
-      `<span class="proc-name">${esc(c.name)}</span>` +
+    $("docker-list").innerHTML = d.docker.containers.length ? d.docker.containers.map((c) => {
+      const host = location.hostname;
+      const nameHtml = c.ports.length
+        ? `<a class="name-link" href="http://${host}:${c.ports[0]}" target="_blank" rel="noopener" title="打开 http://${host}:${c.ports[0]}">${esc(c.name)}</a>`
+        : esc(c.name);
+      const chips = c.ports.length > 1
+        ? ` <span class="ports">` + c.ports.map((p) =>
+            `<a class="port port-link" href="http://${host}:${p}" target="_blank" rel="noopener">${p}</a>`).join("") + `</span>`
+        : "";
+      return `<div class="proc-row">` +
+      `<span class="proc-name">${nameHtml}</span>` +
       `<span class="proc-val ${c.state === "running" ? "" : "st-sleep"}">${STATE_CN[c.state] || esc(c.state)}</span>` +
-      `<span class="proc-sub">${esc(c.image)}</span>` +
-      `<span class="proc-val">${c.state === "running" ? c.cpu_pct.toFixed(1) + "<small>%</small>" : "-"}<br><small>${c.state === "running" ? fmtBytes(c.mem_bytes) : ""}</small></span></div>`
-    ).join("") : `<div class="empty">无容器</div>`;
+      `<span class="proc-sub">${esc(c.image)}${chips}</span>` +
+      `<span class="proc-val">${c.state === "running" ? c.cpu_pct.toFixed(1) + "<small>%</small>" : "-"}<br><small>${c.state === "running" ? fmtBytes(c.mem_bytes) : ""}</small></span></div>`;
+    }).join("") : `<div class="empty">无容器</div>`;
   } else {
     $("docker-count").textContent = "";
     $("docker-na").hidden = !d.docker_hint;
