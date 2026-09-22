@@ -252,6 +252,13 @@ a.port-link:active { filter: brightness(1.25); }
   -webkit-tap-highlight-color: transparent;
 }
 .proc-name a.name-link:active { filter: brightness(1.25); }
+.proc-ports {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 3px;
+}
 
 /* ---------- charts ---------- */
 
