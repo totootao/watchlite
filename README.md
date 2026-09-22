@@ -93,6 +93,7 @@ watchlite --bind 0.0.0.0:8077 --auth admin:secret   # remote access with basic a
 | `--top <N>` | `0` (all) | Cap the process list sent to the UI (0–10000) |
 | `--no-docker` | | Disable the container collector |
 | `--container-socket <P>` | auto | Engine socket; probes Docker then Podman (rootful, rootless) paths |
+| `--image-gc <SECS>` | off | Periodically remove Docker images no container (running **or** stopped) was ever created from. Plain `DELETE`, so images backing any container — and the parent layers of those images — are always kept |
 | `--auth <USER:PASS>` | | Require HTTP Basic auth |
 | `--history <SECS>` | `3600` | Sample history kept in RAM (60–86400) |
 | `--history-file <P>` | state dir | Persist chart history across restarts (`none` disables); defaults to systemd's `$STATE_DIRECTORY` or `~/.local/state/watchlite/` |
@@ -101,7 +102,7 @@ watchlite --bind 0.0.0.0:8077 --auth admin:secret   # remote access with basic a
 | `--once` | | Print one JSON snapshot to stdout and exit — for scripts: `watchlite --once \| jq .cpu.total_pct` |
 | `--check-update` | | Check GitHub releases for a newer version and exit (exit 2 if one exists; never runs automatically) |
 
-Env-var equivalents: `WATCHLITE_BIND`, `WATCHLITE_INTERVAL`, `WATCHLITE_TOP`, `WATCHLITE_AUTH`, `WATCHLITE_HISTORY`, `WATCHLITE_HISTORY_FILE`, `WATCHLITE_WEBHOOK`, `WATCHLITE_CONTAINER_SOCKET` (flags win).
+Env-var equivalents: `WATCHLITE_BIND`, `WATCHLITE_INTERVAL`, `WATCHLITE_TOP`, `WATCHLITE_AUTH`, `WATCHLITE_HISTORY`, `WATCHLITE_HISTORY_FILE`, `WATCHLITE_WEBHOOK`, `WATCHLITE_CONTAINER_SOCKET`, `WATCHLITE_IMAGE_GC` (flags win).
 
 ## API
 

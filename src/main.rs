@@ -28,6 +28,17 @@ fn main() {
         return;
     }
 
+    // Optional scheduled orphan-image GC: a separate thread removes images
+    // that no container (running or stopped) was ever created from, on a
+    // fixed interval. Safe by design — plain DELETE, no force.
+    if let Some(gc) = config.image_gc_interval {
+        let gc_socket = config.container_socket.clone();
+        std::thread::Builder::new()
+            .name("docker-gc".into())
+            .spawn(move || collectors::docker::gc_loop(gc, gc_socket))
+            .expect("failed to spawn docker-gc thread");
+    }
+
     http::serve(&config, state);
 }
 

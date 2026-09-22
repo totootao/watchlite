@@ -18,6 +18,8 @@ pub struct Config {
     pub history_file: Option<PathBuf>,
     /// Explicit container engine socket; None probes Docker/Podman defaults.
     pub container_socket: Option<PathBuf>,
+    /// Period between scheduled orphan-image GC passes; None disables GC.
+    pub image_gc_interval: Option<Duration>,
     pub alerts: Vec<AlertSpec>,
     pub webhook: Option<String>,
     /// Print one JSON snapshot to stdout and exit instead of serving.
@@ -49,6 +51,11 @@ OPTIONS:
     --container-socket <P>  Container engine socket. Default: probes
                         /var/run/docker.sock, /run/podman/podman.sock,
                         $XDG_RUNTIME_DIR/podman/podman.sock
+    --image-gc <SECS>   Periodically remove Docker images that no container
+                        (running or stopped) was ever created from. 0/unset
+                        disables (default). Safe: images backing any container
+                        are kept; plain DELETE (no force), so in-use images
+                        (incl. parent layers of a kept image) are never removed.
     --auth <USER:PASS>  Require HTTP Basic auth
     --history <SECS>    Sample history kept in RAM (default: 3600)
     --history-file <P>  Persist chart history to this file, saved once a
@@ -73,7 +80,7 @@ OPTIONS:
 ENVIRONMENT (flags take precedence):
     WATCHLITE_BIND, WATCHLITE_INTERVAL, WATCHLITE_TOP, WATCHLITE_AUTH,
     WATCHLITE_HISTORY, WATCHLITE_HISTORY_FILE, WATCHLITE_WEBHOOK,
-    WATCHLITE_CONTAINER_SOCKET
+    WATCHLITE_CONTAINER_SOCKET, WATCHLITE_IMAGE_GC
 ";
 
 fn fail(msg: &str) -> ! {
@@ -91,6 +98,7 @@ impl Config {
         let mut history_file_arg = env::var("WATCHLITE_HISTORY_FILE").ok();
         let mut container_socket = env::var("WATCHLITE_CONTAINER_SOCKET").ok();
         let mut webhook = env::var("WATCHLITE_WEBHOOK").ok();
+        let mut image_gc = env::var("WATCHLITE_IMAGE_GC").ok();
         let mut alert_specs: Vec<String> = Vec::new();
         let mut docker = true;
         let mut once = false;
@@ -109,6 +117,7 @@ impl Config {
                 "--history" => history = take("--history"),
                 "--history-file" => history_file_arg = Some(take("--history-file")),
                 "--container-socket" => container_socket = Some(take("--container-socket")),
+                "--image-gc" => image_gc = Some(take("--image-gc")),
                 "--alert" => alert_specs.push(take("--alert")),
                 "--webhook" => webhook = Some(take("--webhook")),
                 "--no-docker" => docker = false,
@@ -153,6 +162,17 @@ impl Config {
             .unwrap_or_else(|| fail(&format!("invalid history seconds (60-86400): {history}")));
         let alerts = alert_specs.iter().map(|spec| parse_alert(spec)).collect();
 
+        // Image GC interval: 60s floor (don't thrash the engine) to 30 days
+        // ceiling; unset/0/garbage disables it.
+        let image_gc_interval: Option<Duration> = image_gc
+            .filter(|s| !s.is_empty())
+            .and_then(|s| {
+                s.parse::<u64>()
+                    .ok()
+                    .filter(|n| (60..=2_592_000).contains(n))
+            })
+            .map(Duration::from_secs);
+
         Config {
             bind,
             interval: Duration::from_secs_f64(secs),
@@ -164,6 +184,7 @@ impl Config {
             container_socket: container_socket
                 .filter(|s| !s.is_empty())
                 .map(PathBuf::from),
+            image_gc_interval,
             alerts,
             webhook,
             once,
